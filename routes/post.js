@@ -33,10 +33,19 @@ route.post(
   bodyParser.json(),
   postController.addLike
 );
+route.post(
+  "/follow",
+  gurdAuth.gurdAuth,
+  bodyParser.json(),
+  postController.follow
+);
+route.get("/followers-count", postController.followCount);
+route.get("/follow", gurdAuth.gurdAuth, postController.checkFollow);
+route.get("/get-comment-count", postController.commentCount);
 route.get("/likes", postController.getLikes);
 route.get("/likes-user", postController.likesUser);
 route.get("/posts", postController.getPosts);
 route.get("/comment", postController.getComment);
-route.get("/profile/:id", postController.getProfile);
+route.get("/profile/:id", postController.getPostsById);
 
 module.exports = route;

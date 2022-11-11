@@ -3,9 +3,18 @@ let link = "http://localhost:4000";
 
 exports.addPost = (req, res, next) => {
   let img =
-    req.file.mimetype !== "video/mp4" ? link + "/img/" + req.file.filename : "";
+    req.file !== undefined
+      ? req.file.mimetype !== "video/mp4"
+        ? link + "/img/" + req.file.filename
+        : ""
+      : "";
+  console.log(img);
   let video =
-    req.file.mimetype === "video/mp4" ? link + "/img/" + req.file.filename : "";
+    req.file !== undefined
+      ? req.file.mimetype === "video/mp4"
+        ? link + "/img/" + req.file.filename
+        : ""
+      : "";
   mysqlConnection.query(
     "INSERT INTO `posts`(`text`, `post_img`, `video`, `user_id`) VALUES (?, ?, ?, ?)",
     [req.body.text, img, video, req.body.userId],
@@ -136,15 +145,15 @@ exports.likesUser = (req, res, next) => {
   );
 };
 
-exports.getProfile = (req, res, next) => {
+exports.getProfileWithImg = (req, res, next) => {
   mysqlConnection.query(
     "SELECT * FROM users WHERE id=?",
     [req.params.id],
     (err, rows) => {
       if (!err) {
         mysqlConnection.query(
-          "SELECT * FROM posts WHERE user_id=?",
-          [req.params.id],
+          "SELECT * FROM posts WHERE user_id=? AND video=?",
+          [req.params.id, ""],
           (error, row) => {
             if (!error) {
               res.json({
@@ -153,6 +162,133 @@ exports.getProfile = (req, res, next) => {
               });
             } else {
               console.log(error);
+            }
+          }
+        );
+      } else {
+        console.log(err);
+      }
+    }
+  );
+};
+
+exports.getPostsById = (req, res, next) => {
+  mysqlConnection.query(
+    "SELECT * FROM posts WHERE user_id=?",
+    [req.params.id],
+    (err, rows) => {
+      if (!err) {
+        mysqlConnection.query(
+          "SELECT * FROM users WHERE id=?",
+          [req.params.id],
+          (err, row) => {
+            if (!err) {
+              res.json({
+                posts: rows,
+                user: row,
+              });
+            } else {
+              console.log(err);
+            }
+          }
+        );
+      } else {
+        console.log(err);
+      }
+    }
+  );
+};
+exports.commentCount = (req, res, next) => {
+  mysqlConnection.query(
+    "SELECT * FROM comment WHERE post_id=?",
+    [req.query.postId],
+    (err, rows) => {
+      if (!err) {
+        res.json({
+          commentCount: rows,
+        });
+      } else {
+        console.log(err);
+      }
+    }
+  );
+};
+
+exports.follow = (req, res, next) => {
+  mysqlConnection.query(
+    "SELECT * FROM `follow` WHERE user_make_follow = ? && following_him = ?",
+    [req.body.addFollow, req.body.takeFollow],
+    (err, rows) => {
+      if (!err) {
+        if (rows.length === 0) {
+          mysqlConnection.query(
+            "INSERT INTO `follow`(`user_make_follow`, `following_him`) VALUES (?,?)",
+            [req.body.addFollow, req.body.takeFollow],
+            (err, rows) => {
+              if (!err) {
+                res.send("add follow");
+              } else {
+                console.log(err);
+              }
+            }
+          );
+        } else {
+          mysqlConnection.query(
+            "DELETE FROM follow WHERE user_make_follow = ? && following_him = ?",
+            [req.body.addFollow, req.body.takeFollow],
+            (err, rows) => {
+              if (!err) {
+                res.send("deleted");
+              } else {
+                console.log(err);
+              }
+            }
+          );
+        }
+      } else {
+        console.log(err);
+      }
+    }
+  );
+};
+
+exports.checkFollow = (req, res, next) => {
+  mysqlConnection.query(
+    "SELECT * FROM `follow` WHERE user_make_follow = ? && following_him = ?",
+    [req.query.addFollow, req.query.takeFollow],
+    (err, rows) => {
+      if (!err) {
+        if (rows.length === 0) {
+          res.json({
+            bool: false,
+          });
+        } else {
+          res.json({
+            bool: true,
+          });
+        }
+      } else {
+      }
+    }
+  );
+};
+exports.followCount = (req, res, next) => {
+  mysqlConnection.query(
+    "SELECT * FROM `follow` WHERE following_him = ?",
+    [req.query.id],
+    (err, rows) => {
+      if (!err) {
+        mysqlConnection.query(
+          "SELECT * FROM `follow` WHERE user_make_follow = ?",
+          [req.query.id],
+          (err, row) => {
+            if (!err) {
+              res.json({
+                followersCount: rows.length,
+                followingCount: row.length,
+              });
+            } else {
+              console.log(err);
             }
           }
         );
