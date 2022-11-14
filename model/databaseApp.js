@@ -1,10 +1,10 @@
 const mysql = require("mysql");
 
 var mysqlConnection = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "",
-  database: "social_app",
+  host: "sql8.freesqldatabase.com",
+  user: "sql8570664",
+  password: "yxiZJHI9cH",
+  database: "sql8570664",
   multipleStatements: true,
 });
 
