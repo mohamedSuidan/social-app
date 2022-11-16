@@ -17,4 +17,4 @@ app.get("*", (req, res) =>
 );
 // console.log(path.join(__dirname, "/img"));
 
-app.listen(4000, () => console.log("server listen"));
+app.listen(process.env.PORT || 4000, () => console.log("server listen"));
